@@ -9,8 +9,8 @@ public class Player : NetworkBehaviour {
     public GameObject stickPrefabs;
 
     [SyncVar]
-    private Color color;
-    private int playerId;
+    public Color color;
+    public int playerId;
 
     private State st;
 
@@ -22,16 +22,18 @@ public class Player : NetworkBehaviour {
     };
 
     void Start() {
+        playerId = (int)GetComponent<NetworkIdentity>().netId.Value;
+
+        color = GlobalData.colorsList[playerId % 2];
+        SetColor(color);
+
         if (isLocalPlayer) {
             st = State.Idle;
             //set camera
             CameraScript camera = GameObject.Find("Main Camera").GetComponent<CameraScript>();
             camera.target = gameObject;
 
-            playerId = (int)GetComponent<NetworkIdentity>().netId.Value;
-
-            color = GlobalData.colorsList[playerId % 2];
-            SetColor(color);
+            
 
             //spawn position
             transform.position = new Vector3(0, 0, 0);
@@ -54,10 +56,14 @@ public class Player : NetworkBehaviour {
         }
 
         if (Input.GetKeyDown(KeyCode.Space)) {
-
             CmdShoot(GetComponent<NetworkIdentity>().netId.Value);
             arrow.SetActive(false);
             st = State.Shooting;
+        }
+
+        if (st == State.Shooting) {
+            st = State.Idle;
+            //stick.Shrink();
         }
     }
 
@@ -77,10 +83,12 @@ public class Player : NetworkBehaviour {
             stickPrefabs,
             transform.position,
             Quaternion.identity);
-        //stick = go.GetComponent<Stick>();
-        //stick.id = this.id;
+        go.GetComponent<SpriteRenderer>().color = color;
+        Stick stick = go.GetComponent<Stick>();
 
         NetworkServer.Spawn(go);
+        stick.CmdSetPlayer(playerId);
+        stick.CmdSetColor(color);
     }
 
     void Rotating() {

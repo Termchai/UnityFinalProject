@@ -5,18 +5,15 @@ using System.Collections;
 public class Node : NetworkBehaviour {
 
     [SyncVar(hook = "OnChangeColorId")]
-    public int colorId = -1;
+    private Color color = Color.gray;
 
-    public RectTransform healthBar;
-
-    public void Hit(int colorId) {
+    public void Hit(Color color) {
         if (!isServer)
             return;
-        Debug.Log("NODE HIT : " + colorId);
-        this.colorId = colorId;
+        this.color = color;
     }
 
-    void OnChangeColorId(int colorId) {
-        GetComponent<SpriteRenderer>().color = GlobalData.colorsList[colorId];
+    void OnChangeColorId(Color color) {
+        GetComponent<SpriteRenderer>().color = color;
     }
 }
