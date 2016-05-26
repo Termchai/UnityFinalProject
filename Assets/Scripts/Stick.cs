@@ -7,6 +7,9 @@ public class Stick : NetworkBehaviour {
     [SyncVar(hook = "OnChangeColorId")]
     private Color color = Color.gray;
 
+    [SyncVar(hook = "OnChangeScale")]
+    private Vector3 scale = new Vector3(0.2f, 0, 0);
+
     enum State {
         Shrinking,
         Stretching,
@@ -34,8 +37,13 @@ public class Stick : NetworkBehaviour {
     }
 
     [Command]
+    public void CmdRotate(Quaternion rotation) {
+        transform.rotation = rotation;
+    }
+
+    [Command]
     public void CmdSetColor(Color color) {
-        if(!isServer) return;
+         
         this.color = color;
     }
 
@@ -43,56 +51,62 @@ public class Stick : NetworkBehaviour {
         GetComponent<SpriteRenderer>().color = color;
     }
 
+    void OnChangeScale(Vector3 scale) {
+        transform.localScale = scale;
+    }
+
     // Update is called once per frame
     void Update() {
-        Debug.Log(state);
+        if (!isServer) return;
         if (state == State.Idle) {
             Destroy(gameObject);
         }
         else if (state == State.Shrinking) {
-            transform.localScale += new Vector3(0, -0.1f * Time.deltaTime * speed, 0);
+            scale += new Vector3(0, -0.1f * Time.deltaTime * speed, 0);
             if (transform.localScale.y <= 0) {
-                transform.localScale = new Vector3(transform.localScale.x, 0, transform.localScale.z);
+                scale = new Vector3(transform.localScale.x, 0, transform.localScale.z);
                 state = State.Idle;
             }
         }
         else if (state == State.Stretching) {
-            transform.localScale += new Vector3(0, 0.1f * Time.deltaTime * speed, 0);
+            scale += new Vector3(0, 0.1f * Time.deltaTime * speed, 0);
             if (transform.localScale.y >= range) {
-                transform.localScale = new Vector3(transform.localScale.x, range, transform.localScale.z);
+                scale = new Vector3(transform.localScale.x, range, transform.localScale.z);
                 state = State.Shrinking;
             }
         }
     }
 
     public void Shrink() {
-        Debug.Log("Shrink");
         state = State.Shrinking;
     }
 
     public void Stretch() {
-        Debug.Log("Stretch");
         state = State.Stretching;
     }
 
     void OnTriggerEnter2D(Collider2D other) {
-        Debug.Log("HIT " + other);
+        if (!isServer) return;
 
         if (other.CompareTag("Wall")) {
-            Debug.Log("Hit Wall");
             Shrink();
         }
-        if (other.CompareTag("Node") && other.transform.position != transform.position) {
-            Debug.Log("Hit Node 1-" + player);
-            Debug.Log("Hit Node 2-" + other.gameObject.GetComponent<Node>());
-            other.gameObject.GetComponent<Node>().Hit(player.color);
+        else if (other.CompareTag("Player")) {
+            Player p = other.GetComponent<Player>();
+            if (p.playerId != player.playerId) {
+                p.RpcKill();
+            }
+
+        }
+        else if (other.CompareTag("Node") && other.transform.position != transform.position) {
+            other.gameObject.GetComponent<Node>().Hit(color);
 
             Vector3 target = other.transform.position;
             Vector3 from = player.transform.position;
 
             Vector3 relativePos = target - from;
 
-            //player.Move(other.transform.position);
+            player.RpcMove(other.transform.position);
 
             if (relativePos.x != 0) {
                 transform.rotation = Quaternion.LookRotation(-relativePos);
