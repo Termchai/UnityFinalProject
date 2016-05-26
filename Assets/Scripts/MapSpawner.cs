@@ -6,10 +6,14 @@ public class MapSpawner : NetworkBehaviour {
 
     public GameObject nodePrefab;
     public GameObject wallsPrefab;
+    public GameObject statisticPrefabs;
     public int height;
     public int width;
 
     public override void OnStartServer() {
+        var statistic = (GameObject)Instantiate(statisticPrefabs, new Vector3(), Quaternion.identity);
+        NetworkServer.Spawn(statistic);
+
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 var spawnPosition = new Vector3(
@@ -24,6 +28,8 @@ public class MapSpawner : NetworkBehaviour {
 
                 var node = (GameObject)Instantiate(nodePrefab, spawnPosition, spawnRotation);
                 NetworkServer.Spawn(node);
+
+                node.GetComponent<Node>().statistic = statistic.GetComponent<Statistic>();
 
                 if (i < 4 && j < 4) {
                     node.GetComponent<Node>().Hit(GlobalData.colorsList[0]);

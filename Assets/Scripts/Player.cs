@@ -43,7 +43,6 @@ public class Player : NetworkBehaviour {
     }
 
     void RandomOrigin() {
-
         //spawn position
         if (playerId % 2 == 0) {
             origin = new Vector3(Random.Range(0, 4) * 2, Random.Range(0, 4) * 2, 0);
@@ -80,14 +79,6 @@ public class Player : NetworkBehaviour {
 
     [Command]
     void CmdShoot(uint netId, Quaternion rotation) {
-        Player[] players = GameObject.FindObjectsOfType<Player>();
-        Player player = null;
-        for (int i = 0; i < players.Length; i++) {
-            if (players[i].GetComponent<NetworkIdentity>().netId.Value == netId) {
-                player = players[i];
-            }
-        }
-
         var go = (GameObject)Instantiate(
             stickPrefabs,
             transform.position,
@@ -107,6 +98,7 @@ public class Player : NetworkBehaviour {
     [ClientRpc]
     public void RpcKill() {
         if (isLocalPlayer) {
+            Destroy(stick);
             RandomOrigin();
             transform.position = origin;
         }
