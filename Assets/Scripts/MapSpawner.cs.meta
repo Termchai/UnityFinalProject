@@ -1,10 +1,12 @@
 fileFormatVersion: 2
 guid: 1b4a76b36e1dc2e4ab2415cb8622b944
-timeCreated: 1464263949
+timeCreated: 1464286353
 licenseType: Free
 MonoImporter:
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - nodePrefab: {fileID: 125080, guid: 77e9ea5ee9a486c4a8a8b1c481fcfcf6, type: 2}
+  - wallsPrefab: {fileID: 189654, guid: d4790efb176e4e44796536ddc3c7442d, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

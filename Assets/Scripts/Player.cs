@@ -15,11 +15,15 @@ public class Player : NetworkBehaviour {
 
     [SyncVar]
     private GameObject stick;
+    private Vector3 origin;
 
     void Start() {
         playerId = (int)GetComponent<NetworkIdentity>().netId.Value;
 
         color = GlobalData.colorsList[playerId % 2];
+
+
+
         SetColor(color);
 
         if (isLocalPlayer) {
@@ -27,15 +31,28 @@ public class Player : NetworkBehaviour {
             hiligth.SetActive(true);
             hiligth.GetComponent<SpriteRenderer>().sortingOrder = 4;
 
+            RandomOrigin();
+            transform.position = origin;
+
             //set camera
             CameraScript camera = GameObject.Find("Main Camera").GetComponent<CameraScript>();
+            camera.transform.position = origin;
             camera.target = gameObject;
-
-            //spawn position
-            transform.position = new Vector3(0, 0, 0);
         }
 
     }
+
+    void RandomOrigin() {
+
+        //spawn position
+        if (playerId % 2 == 0) {
+            origin = new Vector3(Random.Range(0, 4) * 2, Random.Range(0, 4) * 2, 0);
+        }
+        else {
+            origin = new Vector3(Random.Range(11, 15) * 2, Random.Range(11, 15) * 2, 0);
+        }
+    }
+
     void SetColor(Color color) {
         SpriteRenderer[] srs = GetComponentsInChildren<SpriteRenderer>();
         for (int i = 0; i < srs.Length; i++) {
@@ -89,8 +106,10 @@ public class Player : NetworkBehaviour {
 
     [ClientRpc]
     public void RpcKill() {
-        if (isLocalPlayer)
-            Debug.Log("Dead");
+        if (isLocalPlayer) {
+            RandomOrigin();
+            transform.position = origin;
+        }
     }
 
     [ClientRpc]

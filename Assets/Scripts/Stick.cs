@@ -87,8 +87,7 @@ public class Stick : NetworkBehaviour {
 
     void OnTriggerEnter2D(Collider2D other) {
         if (!isServer) return;
-
-        if (other.CompareTag("Wall")) {
+        if (other.CompareTag("Wall") || (other.CompareTag("RedArea") && color == GlobalData.colorsList[1]) || (other.CompareTag("BlueArea") && color == GlobalData.colorsList[0])) {
             Shrink();
         }
         else if (other.CompareTag("Player")) {
