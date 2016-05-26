@@ -2,9 +2,10 @@
 using UnityEngine.Networking;
 using System.Collections;
 
-public class NodeSpawner : NetworkBehaviour {
+public class MapSpawner : NetworkBehaviour {
 
     public GameObject nodePrefab;
+    public GameObject wallsPrefab;
     public int height;
     public int width;
 
@@ -23,7 +24,16 @@ public class NodeSpawner : NetworkBehaviour {
 
                 var node = (GameObject)Instantiate(nodePrefab, spawnPosition, spawnRotation);
                 NetworkServer.Spawn(node);
+
+                if (i < 4 && j < 4) {
+                    node.GetComponent<Node>().Hit(GlobalData.colorsList[0]);
+                }
+                else if (i > 10 && j > 10) {
+                    node.GetComponent<Node>().Hit(GlobalData.colorsList[1]);
+                }
             }
         }
+        var walls = (GameObject)Instantiate(wallsPrefab, new Vector3(), Quaternion.identity);
+        NetworkServer.Spawn(walls);
     }
 }

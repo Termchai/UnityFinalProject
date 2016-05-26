@@ -7,68 +7,79 @@ public class Player : NetworkBehaviour {
     public float rotatingSpeed = 150f;
     public GameObject arrow;
     public GameObject stickPrefabs;
+    public GameObject hiligth;
 
     [SyncVar]
     public Color color;
     public int playerId;
 
-    private State st;
-
-    enum State {
-        Shooting,
-        Moving,
-        Idle,
-        Controllable
-    };
+    [SyncVar]
+    private GameObject stick;
+    private Vector3 origin;
 
     void Start() {
         playerId = (int)GetComponent<NetworkIdentity>().netId.Value;
 
         color = GlobalData.colorsList[playerId % 2];
+
+
+
         SetColor(color);
 
         if (isLocalPlayer) {
-            st = State.Idle;
+            arrow.GetComponent<SpriteRenderer>().sortingOrder = 5;
+            hiligth.SetActive(true);
+            hiligth.GetComponent<SpriteRenderer>().sortingOrder = 4;
+
+            RandomOrigin();
+            transform.position = origin;
+
             //set camera
             CameraScript camera = GameObject.Find("Main Camera").GetComponent<CameraScript>();
+            camera.transform.position = origin;
             camera.target = gameObject;
-
-            
-
-            //spawn position
-            transform.position = new Vector3(0, 0, 0);
         }
 
     }
+
+    void RandomOrigin() {
+
+        //spawn position
+        if (playerId % 2 == 0) {
+            origin = new Vector3(Random.Range(0, 4) * 2, Random.Range(0, 4) * 2, 0);
+        }
+        else {
+            origin = new Vector3(Random.Range(11, 15) * 2, Random.Range(11, 15) * 2, 0);
+        }
+    }
+
     void SetColor(Color color) {
         SpriteRenderer[] srs = GetComponentsInChildren<SpriteRenderer>();
         for (int i = 0; i < srs.Length; i++) {
-            srs[i].color = color;
+            if (srs[i].name != "Hilight")
+                srs[i].color = color;
         }
     }
 
     void Update() {
         if (isLocalPlayer) {
-            if (st == State.Idle) {
-                arrow.SetActive(true);
+            if (stick == null) {
                 Rotating();
+            }
+            if (Input.GetKeyDown(KeyCode.Space) && stick == null) {
+                CmdShoot(GetComponent<NetworkIdentity>().netId.Value, transform.rotation);
+                arrow.SetActive(false);
+            }
+
+            if (stick == null) {
+                arrow.SetActive(true);
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.Space)) {
-            CmdShoot(GetComponent<NetworkIdentity>().netId.Value);
-            arrow.SetActive(false);
-            st = State.Shooting;
-        }
-
-        if (st == State.Shooting) {
-            st = State.Idle;
-            //stick.Shrink();
-        }
     }
 
     [Command]
-    void CmdShoot(uint netId) {
+    void CmdShoot(uint netId, Quaternion rotation) {
         Player[] players = GameObject.FindObjectsOfType<Player>();
         Player player = null;
         for (int i = 0; i < players.Length; i++) {
@@ -76,19 +87,42 @@ public class Player : NetworkBehaviour {
                 player = players[i];
             }
         }
-        // Create the Bullet from the Bullet Prefab
-        //GameObject bullet;
-        //if(colorId =)
+
         var go = (GameObject)Instantiate(
             stickPrefabs,
             transform.position,
             Quaternion.identity);
         go.GetComponent<SpriteRenderer>().color = color;
+        this.stick = go;
         Stick stick = go.GetComponent<Stick>();
 
         NetworkServer.Spawn(go);
+
+        RpcSetStick(go);
+        stick.CmdRotate(rotation);
         stick.CmdSetPlayer(playerId);
         stick.CmdSetColor(color);
+    }
+
+    [ClientRpc]
+    public void RpcKill() {
+        if (isLocalPlayer) {
+            RandomOrigin();
+            transform.position = origin;
+        }
+    }
+
+    [ClientRpc]
+    void RpcSetStick(GameObject stick) {
+        if (isLocalPlayer)
+            this.stick = stick;
+    }
+
+    [ClientRpc]
+    public void RpcMove(Vector3 destination) {
+        if (isLocalPlayer) {
+            transform.position = destination;
+        }
     }
 
     void Rotating() {

@@ -7,6 +7,8 @@ public class CameraScript : MonoBehaviour {
     private Vector3 destination;
     public float speed = 10f;
 
+    private float boostSpeed = 0f;
+
     // Use this for initialization
     void Start() {
 
@@ -16,7 +18,10 @@ public class CameraScript : MonoBehaviour {
     void Update() {
         if (target) {
             Vector3 destination = new Vector3(target.transform.position.x, target.transform.position.y, -10);
-            transform.position = Vector3.MoveTowards(transform.position, destination, speed * Time.deltaTime);
+
+            boostSpeed = (destination - transform.position).magnitude * 2;
+
+            transform.position = Vector3.MoveTowards(transform.position, destination, (speed + boostSpeed) * Time.deltaTime);
         }
     }
 
