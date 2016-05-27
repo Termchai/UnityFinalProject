@@ -2,33 +2,46 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class HttpManager : MonoBehaviour {
+public class HttpManager : MonoBehaviour
+{
 
     string uri = "https://infinite-gorge-23096.herokuapp.com/";
-	void Start()
+    void Start()
     {
-        Debug.Log("Test Http Manager");
-        //scanUser();
-        writeUser();
+        //Debug.Log("Test Http Manager");
+
+
+        //string a = "";
+        //for (int i = 0;  i < 400; i++)
+        //    a += "0";
+
+        //writeNodeItem(a);
+        //getNodeItem();
     }
 
-    public void scanUser()
+    public void getNodeItem()
     {
         HTTP.Request someRequest = new HTTP.Request("get", uri + "users");
         someRequest.Send((request) => {
+            Debug.Log("getNodeCallback");
             JSONObject thing = new JSONObject(request.response.Text);
-            for(int i=0; i<thing.list.Count; i++)
-            {
-                Debug.Log(thing.list[i]["AndroidId"]);
-            }
+            //for (int i = 0; i < thing.list.Count; i++)
+            //{
+            Debug.Log(thing);
+            string nodeColorRaw = thing.list[1].ToString().Replace('\"', ' ');
+            string nodeColor = nodeColorRaw.Substring(1,nodeColorRaw.Length-2);
+            Debug.Log(nodeColor);
+            Debug.Log(nodeColor.Length);
+
+            //}
         });
     }
 
-    public void writeUser()
+    public void writeNodeItem(string nodeColors)
     {
         Hashtable data = new Hashtable();
-        data.Add("AndroidId", "test");
-        data.Add("GCMToken", "test2");
+        data.Add("Session", "1");
+        data.Add("NodeColorString", nodeColors);
 
         HTTP.Request theRequest = new HTTP.Request("post", uri + "users", data);
         theRequest.Send((request) => {
@@ -38,7 +51,7 @@ public class HttpManager : MonoBehaviour {
             if (result == null)
             {
                 Debug.LogWarning("Could not parse JSON response!");
-                
+
                 return;
             }
             Debug.Log(request.response.Text);
