@@ -16,7 +16,7 @@ public class HttpManager : MonoBehaviour
         //    a += "0";
 
         //writeNodeItem(a);
-        //getNodeItem();
+        getNodeItem();
     }
 
     public void getNodeItem()
@@ -32,6 +32,9 @@ public class HttpManager : MonoBehaviour
             string nodeColor = nodeColorRaw.Substring(1,nodeColorRaw.Length-2);
             Debug.Log(nodeColor);
             Debug.Log(nodeColor.Length);
+            MapSpawner.nodeColorString = nodeColor;
+
+            Fade.active = true;
 
             //}
         });

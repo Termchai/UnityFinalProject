@@ -7,12 +7,28 @@ public class Node : NetworkBehaviour {
     public Statistic statistic;
 
     [SyncVar(hook = "OnChangeColorId")]
-    private Color color = new Color(0.8f,0.8f,0.8f);
+    public Color color = new Color(0.8f,0.8f,0.8f);
 
-    public void Hit(Color color) {
+    private MapSpawner mapSpawner;
+
+    public void Hit(Color color)
+    {
+        if (!isServer || color == this.color)
+            return;
+        Setup(color);
+        mapSpawner.CmdUpdateDataBase();
+    }
+
+    public void Setup(Color color)
+    {
         if (!isServer)
             return;
         this.color = color;
+    }
+
+    public void SetListener(MapSpawner m)
+    {
+        mapSpawner = m;
     }
 
     void OnChangeColorId(Color color) {
