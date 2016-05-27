@@ -6,7 +6,8 @@ public class Player : NetworkBehaviour {
 
     public float rotatingSpeed = 150f;
     public GameObject arrow;
-    public GameObject stickPrefabs;
+    public GameObject stickPrefab;
+    public GameObject bulletPrefab;
     public GameObject hiligth;
 
     [SyncVar]
@@ -16,14 +17,12 @@ public class Player : NetworkBehaviour {
     [SyncVar]
     private GameObject stick;
     private Vector3 origin;
+    public int level = 1;
 
     void Start() {
         playerId = (int)GetComponent<NetworkIdentity>().netId.Value;
 
         color = GlobalData.colorsList[playerId % 2];
-
-
-
         SetColor(color);
 
         if (isLocalPlayer) {
@@ -66,7 +65,7 @@ public class Player : NetworkBehaviour {
                 Rotating();
             }
             if (Input.GetKeyDown(KeyCode.Space) && stick == null) {
-                CmdShoot(GetComponent<NetworkIdentity>().netId.Value, transform.rotation);
+                CmdShoot(GetComponent<NetworkIdentity>().netId.Value, transform.rotation, level);
                 arrow.SetActive(false);
             }
 
@@ -78,21 +77,53 @@ public class Player : NetworkBehaviour {
     }
 
     [Command]
-    void CmdShoot(uint netId, Quaternion rotation) {
-        var go = (GameObject)Instantiate(
-            stickPrefabs,
+    void CmdShoot(uint netId, Quaternion rotation, int level) {
+        if (level >= 1) {
+            var go = (GameObject)Instantiate(
+            stickPrefab,
             transform.position,
             Quaternion.identity);
-        go.GetComponent<SpriteRenderer>().color = color;
-        this.stick = go;
-        Stick stick = go.GetComponent<Stick>();
+            go.GetComponent<SpriteRenderer>().color = color;
+            this.stick = go;
+            Stick stick = go.GetComponent<Stick>();
 
-        NetworkServer.Spawn(go);
+            NetworkServer.Spawn(go);
 
-        RpcSetStick(go);
-        stick.CmdRotate(rotation);
-        stick.CmdSetPlayer(playerId);
-        stick.CmdSetColor(color);
+            RpcSetStick(go);
+            stick.CmdRotate(rotation);
+            stick.CmdSetPlayer(playerId);
+            stick.CmdSetColor(color);
+        }
+        if (level >= 2) {
+            FireBullet(Quaternion.Euler(rotation.eulerAngles + new Vector3(0, 0, 45f)));
+            FireBullet(Quaternion.Euler(rotation.eulerAngles + new Vector3(0, 0, 135f)));
+        }
+        if (level >= 3) {
+            FireBullet(Quaternion.Euler(rotation.eulerAngles + new Vector3(0, 0, 22.5f)));
+            FireBullet(Quaternion.Euler(rotation.eulerAngles + new Vector3(0, 0, 112.5f)));
+        }
+        if (level >= 4) {
+            FireBullet(Quaternion.Euler(rotation.eulerAngles + new Vector3(0, 0, 67.5f)));
+            FireBullet(Quaternion.Euler(rotation.eulerAngles + new Vector3(0, 0, 157.5f)));
+        }
+        if (level >= 5) {
+            FireBullet(Quaternion.Euler(rotation.eulerAngles + new Vector3(0, 0, 90f)));
+            FireBullet(Quaternion.Euler(rotation.eulerAngles + new Vector3(0, 0, 180f)));
+        }
+    }
+
+    void FireBullet(Quaternion rotation) {
+        var go2 = (GameObject)Instantiate(
+            bulletPrefab,
+            transform.position,
+            Quaternion.identity);
+        go2.GetComponent<SpriteRenderer>().color = color;
+        Bullet bullet = go2.GetComponent<Bullet>();
+
+        NetworkServer.Spawn(go2);
+        bullet.CmdRotate(rotation);
+        bullet.CmdSetPlayer(playerId);
+        bullet.CmdSetColor(color);
     }
 
     [ClientRpc]
