@@ -6,12 +6,11 @@ public class MapSpawner : NetworkBehaviour {
 
     public GameObject nodePrefab;
     public GameObject wallsPrefab;
-    public GameObject statisticPrefabs;
+    public GameObject statistic;
     public int height;
     public int width;
 
     public override void OnStartServer() {
-        var statistic = (GameObject)Instantiate(statisticPrefabs, new Vector3(), Quaternion.identity);
         NetworkServer.Spawn(statistic);
 
         for (int i = 0; i < height; i++) {

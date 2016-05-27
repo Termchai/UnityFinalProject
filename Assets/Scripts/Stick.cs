@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿﻿using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
 
@@ -43,7 +43,7 @@ public class Stick : NetworkBehaviour {
 
     [Command]
     public void CmdSetColor(Color color) {
-         
+
         this.color = color;
     }
 

@@ -1,29 +1,71 @@
 ﻿using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Statistic : NetworkBehaviour {
 
-    [SyncVar(hook = "OnChangeRedCount")]
-    private int redCount = 0;
+    public static string playerName;
 
-    [SyncVar(hook = "OnChangeBlueCount")]
-    private int blueCount = 0;
-
-    //[SyncVar(hook = "OnChangeBlueCount")]
-    //public List<int> scoreboard = new List<int>();
-
-    void OnChangeRedCount(int count) {
-        redCount = count;
+    public enum Team:int {
+        Red = 0,
+        Blue = 1
     }
 
-    void OnChangeBlueCount(int count) {
-        blueCount = count;
+    [SyncVar(hook = "OnChangeRedPlayerCount")]
+    public int redPlayerCount = 0;
+
+    [SyncVar(hook = "OnChangeBluePlayerCount")]
+    public int bluePlayerCount = 0;
+
+    [SyncVar(hook = "OnChangeRedCount")]
+    public int redCount = 0;
+
+    [SyncVar(hook = "OnChangeBlueCount")]
+    public int blueCount = 0;
+
+    void OnChangeRedPlayerCount(int c) {
+        this.redPlayerCount = c;
+    }
+
+    void OnChangeBluePlayerCount(int c) {
+        this.bluePlayerCount = c;
+    }
+
+    void OnChangeRedCount(int c) {
+        this.redCount = c;
+    }
+
+    void OnChangeBlueCount(int c) {
+        this.blueCount = c;
+    }
+
+    [Command]
+    public void CmdAddPlayer(Team team) {
+        if (isServer) {
+            if (team == Team.Red) {
+                redPlayerCount++;
+            }
+            else {
+                bluePlayerCount++;
+            }
+        }
+    }
+
+    [Command]
+    public void CmdRemovePlayer(Team team) {
+        if (isServer) {
+            if (team == Team.Red) {
+                redPlayerCount--;
+            }
+            else {
+                bluePlayerCount--;
+            }
+        }
     }
 
     [Command]
     public void CmdIncreaseRedCount() {
-        Debug.Log("CmdIncreaseRedCount");
         if (isServer) {
             redCount++;
         }
@@ -32,7 +74,7 @@ public class Statistic : NetworkBehaviour {
     [Command]
     public void CmdDecreaseRedCount() {
         if (isServer) {
-            redCount++;
+            redCount--;
         }
     }
 
@@ -46,7 +88,7 @@ public class Statistic : NetworkBehaviour {
     [Command]
     public void CmdDecreaseBlueCount() {
         if (isServer) {
-            blueCount++;
+            blueCount--;
         }
     }
 
@@ -58,7 +100,16 @@ public class Statistic : NetworkBehaviour {
         return blueCount;
     }
 
+    public int GetRedPlayer() {
+        return redPlayerCount;
+    }
+
+    public int GetBluePlayer() {
+        return bluePlayerCount;
+    }
+
+
     void Update() {
-        Debug.Log("Stat: " + redCount + ":" + blueCount);
+        Debug.Log(bluePlayerCount + ":" + redPlayerCount);
     }
 }

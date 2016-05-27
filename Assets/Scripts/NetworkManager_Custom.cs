@@ -3,6 +3,10 @@ using System.Collections;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 public class NetworkManager_Custom : NetworkManager {
+
+    public Text ipAddress;
+    public Text playerName;
+
     public void StartupHost() {
         SetPort();
         NetworkManager.singleton.StartHost();
@@ -10,11 +14,11 @@ public class NetworkManager_Custom : NetworkManager {
     public void JoinGame() {
         SetIPAddress();
         SetPort();
+        Statistic.playerName = playerName.text;
         NetworkManager.singleton.StartClient();
     }
     void SetIPAddress() {
-        string ipAddress = GameObject.Find("InputField").transform.FindChild("Text").GetComponent<Text>().text;
-        NetworkManager.singleton.networkAddress = ipAddress;
+        NetworkManager.singleton.networkAddress = ipAddress.text;
     }
     void SetPort() {
         NetworkManager.singleton.networkPort = 7777;
@@ -30,15 +34,13 @@ public class NetworkManager_Custom : NetworkManager {
     }
     IEnumerator SetupMenuSceneButtons() {
         yield return new WaitForSeconds(0.3f);
-        Debug.Log(GameObject.Find("ButtonStartHost"));
-        Debug.Log(GameObject.Find("ButtonStartHost").GetComponent<Button>());
         GameObject.Find("ButtonStartHost").GetComponent<Button>().onClick.RemoveAllListeners();
         GameObject.Find("ButtonStartHost").GetComponent<Button>().onClick.AddListener(StartupHost);
         GameObject.Find("ButtonJoinGame").GetComponent<Button>().onClick.RemoveAllListeners();
         GameObject.Find("ButtonJoinGame").GetComponent<Button>().onClick.AddListener(JoinGame);
     }
     void SetupOtherSceneButtons() {
-        GameObject.Find("ButtonDisconnect").GetComponent<Button>().onClick.RemoveAllListeners();
-        GameObject.Find("ButtonDisconnect").GetComponent<Button>().onClick.AddListener(NetworkManager.singleton.StopHost);
+        //GameObject.Find("ButtonDisconnect").GetComponent<Button>().onClick.RemoveAllListeners();
+        //GameObject.Find("ButtonDisconnect").GetComponent<Button>().onClick.AddListener(NetworkManager.singleton.StopHost);
     }
 }
